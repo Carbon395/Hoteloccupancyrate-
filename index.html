@@ -67,13 +67,13 @@
 <div class="container">
     <h2>臺北市旅館訂房率填報系統</h2>
 
-    <!-- 表單直接綁定目標跟提交方法，減少 JS 動態修改的複雜度 -->
+    <!-- Action 已正確導向至該表單的背景提交端點 (formResponse) -->
     <form id="occupancyForm" action="https://docs.google.com/forms/d/e/1FAIpQLScFsx6dMiEBPTR36H5mxF_M2YqirMzbDbtGKs6zXOA6WUwmZw/formResponse" method="POST" target="hidden_iframe">
         <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
                 <label for="district">行政區</label>
-                <!-- 直接將 name 寫在 HTML 中，符合標準表單行為 -->
-                <select id="district" name="entry.342958064" required>
+                <!-- 對接新網址參數：entry.1640318744 -->
+                <select id="district" name="entry.1640318744" required>
                     <option value="" disabled selected>-- 請選擇 --</option>
                     <option value="中正區">中正區</option><option value="萬華區">萬華區</option>
                     <option value="大同區">大同區</option><option value="中山區">中山區</option>
@@ -85,18 +85,21 @@
             </div>
             <div class="form-group" style="flex: 2;">
                 <label for="hotelName">旅館名稱</label>
-                <input type="text" id="hotelName" name="entry.534318142" required placeholder="例如：大安精品旅店">
+                <!-- 對接新網址參數：entry.1785275569 -->
+                <input type="text" id="hotelName" name="entry.1785275569" required placeholder="例如：大安精品旅店">
             </div>
         </div>
         
         <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
                 <label for="reportDate">訂房率日期</label>
-                <input type="date" id="reportDate" name="entry.596700743" required>
+                <!-- 對接新網址參數：entry.202114952 -->
+                <input type="date" id="reportDate" name="entry.202114952" required>
             </div>
             <div class="form-group" style="flex: 1;">
                 <label for="occupancyRate">訂房率</label>
-                <input type="number" id="occupancyRate" name="entry.616612594" min="0" max="100" required placeholder="請填數字 0 - 100，勿填 %">
+                <!-- 對接新網址參數：entry.2026568636 -->
+                <input type="number" id="occupancyRate" name="entry.2026568636" min="0" max="100" required placeholder="請填數字 0 - 100，勿填 %">
             </div>
         </div>
         
@@ -104,47 +107,45 @@
     </form>
 </div>
 
-<!-- 背景接收用 iframe -->
+<!-- 背景接收用隱藏 iframe，防止畫面跳轉至 Google 成功頁面 -->
 <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
 <script>
-    // 預設填報日期為今天
+    // 自動預設填報日期為今天
     document.getElementById('reportDate').valueAsDate = new Date();
 
     const form = document.getElementById('occupancyForm');
 
     form.addEventListener('submit', function(e) {
-        // 先暫停提交，進行資料確認與過濾
+        // 先暫停原生提交以進行防呆驗證與彈窗確認
         e.preventDefault(); 
 
         const district = document.getElementById('district').value;
         const hotelName = document.getElementById('hotelName').value;
         const reportDate = document.getElementById('reportDate').value;
         
-        // 強制過濾非數字與小數點（防呆）
+        // 防呆：再次過濾掉手動輸入可能帶有的 % 符號，確保只傳純數字
         let rateInput = document.getElementById('occupancyRate');
         let occupancyRate = rateInput.value.replace(/[^0-9.]/g, ''); 
-        rateInput.value = occupancyRate; // 將過濾後的乾淨數值填回欄位
+        rateInput.value = occupancyRate; 
 
-        // 確認視窗
+        // 提示視窗（不含 %）
         const confirmMessage = `請確認您的填報資訊：\n\n行政區：${district}\n旅館名稱：${hotelName}\n填報日期：${reportDate}\n訂房率：${occupancyRate}\n\n確定要提交這些資料至雲端後台嗎？`;
         
         if (!confirm(confirmMessage)) {
-            return; // 使用者取消則中斷
+            return; 
         }
 
-        // 關鍵改動：利用另一個監聽器或直接使用原生的 submit 行為，避免死循環
-        // 這裡我們直接解除攔截，並呼叫原生的非監聽 submit 觸發送出
         alert('訂房率已成功同步至觀傳局系統後台！');
         
-        // 延遲重設表單，確保資料有成功透過 iframe 送出
+        // 延遲重設網頁表單，確保資料已順利透過 iframe 派送出去
         setTimeout(() => {
             form.reset();
-            document.getElementById('reportDate').valueAsDate = new Date(); // 重設後再次預設今天
+            document.getElementById('reportDate').valueAsDate = new Date(); // 重新將日期預設為今天
         }, 500);
 
-        // 真正的執行送出
-        form.submit(); 
+        // 呼叫原生 HTMLFormElement 的 submit 送出表單
+        HTMLFormElement.prototype.submit.call(form);
     });
 </script>
 
