@@ -75,7 +75,7 @@
         let occupancyRate = rateInput.value.replace(/[^0-9.]/g, ''); 
         rateInput.value = occupancyRate; 
 
-        const confirmMessage = `請確認您的填報資訊：\n\n行政區：${district}\n旅館名稱：${hotelName}\n填報日期：${reportDate}\n訂房率：${occupancyRate}\n\n確定要提交這些資料至雲端後台嗎？`;
+        const confirmMessage = `請確認您的填報資訊：\n\n行政區：${district}\n旅館名稱：${hotelName}\n訂房率日期：${reportDate}\n訂房率：${occupancyRate}\n\n確定要提交這些資料至雲端後台嗎？`;
         
         if (!confirm(confirmMessage)) {
             return; 
