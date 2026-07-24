@@ -67,11 +67,13 @@
 <div class="container">
     <h2>臺北市旅館訂房率填報系統</h2>
 
-    <form id="occupancyForm" target="hidden_iframe">
+    <!-- 表單直接綁定目標跟提交方法，減少 JS 動態修改的複雜度 -->
+    <form id="occupancyForm" action="https://docs.google.com/forms/d/e/1FAIpQLScFsx6dMiEBPTR36H5mxF_M2YqirMzbDbtGKs6zXOA6WUwmZw/formResponse" method="POST" target="hidden_iframe">
         <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
                 <label for="district">行政區</label>
-                <select id="district" required>
+                <!-- 直接將 name 寫在 HTML 中，符合標準表單行為 -->
+                <select id="district" name="entry.342958064" required>
                     <option value="" disabled selected>-- 請選擇 --</option>
                     <option value="中正區">中正區</option><option value="萬華區">萬華區</option>
                     <option value="大同區">大同區</option><option value="中山區">中山區</option>
@@ -83,19 +85,18 @@
             </div>
             <div class="form-group" style="flex: 2;">
                 <label for="hotelName">旅館名稱</label>
-                <input type="text" id="hotelName" required placeholder="例如：大安精品旅店">
+                <input type="text" id="hotelName" name="entry.534318142" required placeholder="例如：大安精品旅店">
             </div>
         </div>
         
         <div style="display: flex; gap: 15px;">
             <div class="form-group" style="flex: 1;">
                 <label for="reportDate">訂房率日期</label>
-                <input type="date" id="reportDate" required>
+                <input type="date" id="reportDate" name="entry.596700743" required>
             </div>
             <div class="form-group" style="flex: 1;">
-                <!-- 調整點 1：標題移除 (%)，提示文字改成請輸入 0 - 100 純數字 -->
                 <label for="occupancyRate">訂房率</label>
-                <input type="number" id="occupancyRate" min="0" max="100" required placeholder="請填數字 0 - 100，勿填 %">
+                <input type="number" id="occupancyRate" name="entry.616612594" min="0" max="100" required placeholder="請填數字 0 - 100，勿填 %">
             </div>
         </div>
         
@@ -103,61 +104,47 @@
     </form>
 </div>
 
+<!-- 背景接收用 iframe -->
 <iframe name="hidden_iframe" id="hidden_iframe"></iframe>
 
 <script>
+    // 預設填報日期為今天
     document.getElementById('reportDate').valueAsDate = new Date();
 
     const form = document.getElementById('occupancyForm');
 
-    const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLScFsx6dMiEBPTR36H5mxF_M2YqirMzbDbtGKs6zXOA6WUwmZw/viewform?usp=pp_url&entry.342958064=%E4%B8%AD%E6%AD%A3%E5%8D%80&entry.534318142=%E4%B8%AD%E6%AD%A3%E9%A3%AF%E5%BA%97&entry.596700743=2026-07-25&entry.616612594=80"; 
-    
-    const ENTRY_IDS = {
-        district: "entry.342958064",      
-        hotelName: "entry.534318142",     
-        reportDate: "entry.596700743",    
-        occupancyRate: "entry.616612594"  
-    };
-
     form.addEventListener('submit', function(e) {
+        // 先暫停提交，進行資料確認與過濾
         e.preventDefault(); 
 
         const district = document.getElementById('district').value;
         const hotelName = document.getElementById('hotelName').value;
         const reportDate = document.getElementById('reportDate').value;
         
-        // 調整點 2：強制將輸入內容過濾掉任何非數字與小數點的符號（徹底拔除 %）
-        let occupancyRate = document.getElementById('occupancyRate').value;
-        occupancyRate = occupancyRate.replace(/[^0-9.]/g, ''); 
+        // 強制過濾非數字與小數點（防呆）
+        let rateInput = document.getElementById('occupancyRate');
+        let occupancyRate = rateInput.value.replace(/[^0-9.]/g, ''); 
+        rateInput.value = occupancyRate; // 將過濾後的乾淨數值填回欄位
 
-        // 調整點 3：確認彈出視窗的提示文字也同步拿掉 % 符號
+        // 確認視窗
         const confirmMessage = `請確認您的填報資訊：\n\n行政區：${district}\n旅館名稱：${hotelName}\n填報日期：${reportDate}\n訂房率：${occupancyRate}\n\n確定要提交這些資料至雲端後台嗎？`;
         
         if (!confirm(confirmMessage)) {
-            return; 
+            return; // 使用者取消則中斷
         }
 
-        form.action = GOOGLE_FORM_ACTION_URL;
-        form.method = "POST";
-        
-        document.getElementById('district').name = ENTRY_IDS.district;
-        document.getElementById('hotelName').name = ENTRY_IDS.hotelName;
-        document.getElementById('reportDate').name = ENTRY_IDS.reportDate;
-        
-        // 將過濾乾淨的純數字帶回欄位準備送出
-        const rateInput = document.getElementById('occupancyRate');
-        rateInput.value = occupancyRate;
-        rateInput.name = ENTRY_IDS.occupancyRate;
-
-        form.submit();
-
+        // 關鍵改動：利用另一個監聽器或直接使用原生的 submit 行為，避免死循環
+        // 這裡我們直接解除攔截，並呼叫原生的非監聽 submit 觸發送出
         alert('訂房率已成功同步至觀傳局系統後台！');
-        rateInput.value = '';
         
-        document.getElementById('district').removeAttribute('name');
-        document.getElementById('hotelName').removeAttribute('name');
-        document.getElementById('reportDate').removeAttribute('name');
-        rateInput.removeAttribute('name');
+        // 延遲重設表單，確保資料有成功透過 iframe 送出
+        setTimeout(() => {
+            form.reset();
+            document.getElementById('reportDate').valueAsDate = new Date(); // 重設後再次預設今天
+        }, 500);
+
+        // 真正的執行送出
+        form.submit(); 
     });
 </script>
 
