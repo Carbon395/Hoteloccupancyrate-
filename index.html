@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺北市旅館訂房率系統</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #1a73e8;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="date"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background-color: #fff;
+        }
+        button[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        button[type="submit"]:hover {
+            background-color: #155cb0;
+        }
+        #hidden_iframe {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>臺北市旅館訂房率填報系統</h2>
+
+    <form id="occupancyForm" target="hidden_iframe">
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="district">行政區</label>
+                <select id="district" required>
+                    <option value="" disabled selected>-- 請選擇 --</option>
+                    <option value="中正區">中正區</option><option value="萬華區">萬華區</option>
+                    <option value="大同區">大同區</option><option value="中山區">中山區</option>
+                    <option value="大安區">大安區</option><option value="信義區">信義區</option>
+                    <option value="松山區">松山區</option><option value="內湖區">內湖區</option>
+                    <option value="南港區">南港區</option><option value="士林區">士林區</option>
+                    <option value="北投區">北投區</option><option value="文山區">文山區</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 2;">
+                <label for="hotelName">旅館名稱</label>
+                <input type="text" id="hotelName" required placeholder="例如：大安精品旅店">
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="reportDate">訂房率日期</label>
+                <input type="date" id="reportDate" required>
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <!-- 調整點 1：標題移除 (%)，提示文字改成請輸入 0 - 100 純數字 -->
+                <label for="occupancyRate">訂房率</label>
+                <input type="number" id="occupancyRate" min="0" max="100" required placeholder="請填數字 0 - 100，勿填 %">
+            </div>
+        </div>
+        
+        <button type="submit">提交填報資料</button>
+    </form>
+</div>
+
+<iframe name="hidden_iframe" id="hidden_iframe"></iframe>
+
+<script>
+    document.getElementById('reportDate').valueAsDate = new Date();
+
+    const form = document.getElementById('occupancyForm');
+
+    const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLScFsx6dMiEBPTR36H5mxF_M2YqirMzbDbtGKs6zXOA6WUwmZw/formResponse"; 
+    
+    const ENTRY_IDS = {
+        district: "entry.342958064",      
+        hotelName: "entry.534318142",     
+        reportDate: "entry.596700743",    
+        occupancyRate: "entry.616612594"  
+    };
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+
+        const district = document.getElementById('district').value;
+        const hotelName = document.getElementById('hotelName').value;
+        const reportDate = document.getElementById('reportDate').value;
+        
+        // 調整點 2：強制將輸入內容過濾掉任何非數字與小數點的符號（徹底拔除 %）
+        let occupancyRate = document.getElementById('occupancyRate').value;
+        occupancyRate = occupancyRate.replace(/[^0-9.]/g, ''); 
+
+        // 調整點 3：確認彈出視窗的提示文字也同步拿掉 % 符號
+        const confirmMessage = `請確認您的填報資訊：\n\n行政區：${district}\n旅館名稱：${hotelName}\n填報日期：${reportDate}\n訂房率：${occupancyRate}\n\n確定要提交這些資料至雲端後台嗎？`;
+        
+        if (!confirm(confirmMessage)) {
+            return; 
+        }
+
+        form.action = GOOGLE_FORM_ACTION_URL;
+        form.method = "POST";
+        
+        document.getElementById('district').name = ENTRY_IDS.district;
+        document.getElementById('hotelName').name = ENTRY_IDS.hotelName;
+        document.getElementById('reportDate').name = ENTRY_IDS.reportDate;
+        
+        // 將過濾乾淨的純數字帶回欄位準備送出
+        const rateInput = document.getElementById('occupancyRate');
+        rateInput.value = occupancyRate;
+        rateInput.name = ENTRY_IDS.occupancyRate;
+
+        form.submit();
+
+        alert('訂房率已成功同步至觀傳局系統後台！');
+        rateInput.value = '';
+        
+        document.getElementById('district').removeAttribute('name');
+        document.getElementById('hotelName').removeAttribute('name');
+        document.getElementById('reportDate').removeAttribute('name');
+        rateInput.removeAttribute('name');
+    });
+</script>
+
+</body>
+</html>
