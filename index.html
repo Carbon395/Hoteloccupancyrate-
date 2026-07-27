@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>臺北市旅館訂房填報系統</title>
     <style>
         :root {
@@ -11,8 +11,7 @@
             --background-color: #f6f3ea;    /* 高級溫潤的溫泉淺米黃 */
             --card-bg: #ffffff;
             --text-main: #1e2022;           /* 高級深炭黑 */
-            --text-muted: #555b61;          /* 強化加深霧灰 */
-            --border-normal: #cbc4b7;       /* 稍微加深的優雅暖灰邊框 */
+            --border-normal: #cbc4b7;       /* 優雅暖灰邊框 */
             --border-focus: #1a4f8a;
             --focus-glow: rgba(26, 79, 138, 0.15);
         }
@@ -23,194 +22,263 @@
             padding: 0;
         }
 
+        /* 鎖定手機視窗高度，無論直橫向都絕對禁止出現網頁主捲動條 */
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--background-color);
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-main);
-            line-height: 1.6;
-            padding: 40px 20px;
+            padding: 2vh 2vw;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            align-items: center; 
             -webkit-font-smoothing: antialiased;
+            transition: padding 0.3s ease;
         }
 
-        /* 系統核心卡片 */
+        /* ==========================================================================
+           【預設模式：直幅螢幕 (Portrait)】完美契合手機直拿 9:16 視覺
+           ========================================================================== */
         .system-card {
             background: var(--card-bg);
-            width: 100%;
-            max-width: 680px; 
-            padding: 50px 45px;
-            border-radius: 20px;
-            box-shadow: 
-                0 4px 6px -1px rgba(0, 0, 0, 0.01),
-                0 25px 50px -12px rgba(163, 154, 134, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(213, 207, 196, 0.7);
+            width: calc(92vh * 9 / 16); 
+            max-width: 100%;
+            height: 92vh; 
+            max-height: 740px;
+            padding: 3vh 5vw;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px -12 rgba(163, 154, 134, 0.35);
+            border: 1px solid rgba(213, 207, 196, 0.5);
             position: relative;
+            
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
         }
 
+        /* 頂部藍色質感裝飾條 */
         .system-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 8px; 
+            height: 6px; 
             background: var(--primary-gradient);
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
         }
 
         .system-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-top: 1vh;
+            margin-bottom: 1vh;
+            flex-shrink: 0;
         }
 
         .system-header h2 {
             color: #0f3966;
-            font-size: 30px; 
-            font-weight: 900; 
-            letter-spacing: 2px;
-            margin-bottom: 10px;
+            font-size: clamp(20px, 3vh, 26px); /* 📌 標題放大 */
+            font-weight: 800; 
+            letter-spacing: 0.5px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-grow: 1;
+        }
+
+        /* 直幅下欄位一行一個 */
+        .form-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: clamp(8px, 1.8vh, 16px); 
+            margin-bottom: 2vh;
         }
 
         .form-group {
-            margin-bottom: 32px; 
+            display: flex;
+            flex-direction: column;
         }
 
-        /* 欄位標籤：加大且極粗體 */
         label {
             display: block;
-            font-weight: 800;
-            margin-bottom: 12px;
-            font-size: 20px; 
+            font-weight: 700;
+            margin-bottom: 0.5vh;
+            font-size: clamp(14px, 2.2vh, 18px); /* 📌 欄位標籤字體放大 (原 12px~15px) */
             color: var(--text-main);
-            letter-spacing: 0.8px;
+            letter-spacing: 0.5px;
         }
 
-        /* 💡 核心變更：輸入項目填入的文字「放巨大」，提升辨識度 */
+        /* 輸入框尺寸自適應隨手機大小縮放 */
         input[type="text"],
         input[type="date"],
         select {
             width: 100%;
-            padding: 18px 20px; 
-            font-size: 28px;        /* 文字調為巨大 28px */
-            font-weight: 900;       /* 文字粗度調為極粗 900 */
+            padding: clamp(12px, 1.6vh, 16px) 14px; /* 📌 增加上下內襯讓大字體不擁擠 */
+            font-size: clamp(16px, 2.4vh, 20px);    /* 📌 欄位輸入文字放大 (原 14px~17px) */
+            font-weight: 600;   
             color: var(--text-main);
-            border: 3px solid var(--border-normal); 
-            border-radius: 14px;
+            border: 1.5px solid var(--border-normal); 
+            border-radius: 8px;
             background-color: #fcfcfb;
             outline: none;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.15s ease;
             -webkit-appearance: none;
-            -moz-appearance: none;
             appearance: none;
-            box-shadow: inset 0 2px 5px rgba(163, 154, 134, 0.15);
         }
 
-        /* 提示字（Placeholder）稍微縮小一些，以防文字過長溢出，但仍保持清晰粗體 */
-        ::-webkit-input-placeholder { font-weight: 700; font-size: 20px; color: #a0a5ab; }
-        :-moz-placeholder { font-weight: 700; font-size: 20px; color: #a0a5ab; }
-        ::-moz-placeholder { font-weight: 700; font-size: 20px; color: #a0a5ab; }
-        :-ms-input-placeholder { font-weight: 700; font-size: 20px; color: #a0a5ab; }
+        ::-webkit-input-placeholder { font-weight: 500; font-size: 15px; color: #a0a5ab; }
 
-        /* 下拉選單高級箭頭（配合巨大文字放大與向右微調） */
         select {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%231e2022' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23555b61' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
             background-repeat: no-repeat;
-            background-position: right 22px center;
-            background-size: 20px 20px;
-            padding-right: 56px;
+            background-position: right 14px center;
+            background-size: 16px 16px;
+            padding-right: 42px;
         }
 
-        /* 聚焦時的亮化與立體藍光暈 */
         input:focus, select:focus {
             border-color: var(--border-focus);
             background-color: #ffffff;
-            box-shadow: 
-                0 0 0 5px var(--focus-glow),
-                inset 0 1px 2px rgba(0, 0, 0, 0.01);
+            box-shadow: 0 0 0 3px var(--focus-glow);
         }
 
-        /* 行事曆點選圖示放大 */
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-            scale: 1.5; 
-            opacity: 0.8;
-            margin-right: 5px;
-            transition: opacity 0.2s;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator:hover {
-            opacity: 1;
-        }
-
-        .input-wrapper {
-            position: relative;
+        .action-area {
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            gap: 1vh;
+            flex-shrink: 0;
         }
 
         .hint-text {
-            font-size: 16px;
-            font-weight: 800; 
-            color: #d1413b;  /* 深警示紅 */
+            font-size: clamp(12px, 1.8vh, 14px); /* 📌 提示字微調放大 */
+            font-weight: 600; 
+            color: #d1413b;
             text-align: center;
-            margin-top: 26px;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
         }
 
-        /* 大氣微立體按鈕 */
         .btn-submit {
             display: block;
             width: 100%;
-            padding: 18px; 
+            padding: clamp(14px, 1.8vh, 18px); 
             background: var(--primary-gradient);
             color: #ffffff;
             border: none;
-            border-radius: 12px;
-            font-size: 22px; 
-            font-weight: 800; 
+            border-radius: 8px;
+            font-size: clamp(16px, 2.4vh, 20px); /* 📌 按鈕字體同步放大 */
+            font-weight: 700; 
             cursor: pointer;
-            letter-spacing: 3px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 
-                0 6px 18px rgba(26, 79, 138, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.25);
-            margin-top: 20px;
-        }
-
-        .btn-submit:hover {
-            background: var(--btn-hover-gradient);
-            box-shadow: 0 8px 24px rgba(26, 79, 138, 0.45);
-            transform: translateY(-1px);
+            letter-spacing: 1px;
+            box-shadow: 0 4px 14px rgba(26, 79, 138, 0.2);
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-submit:active {
-            transform: translateY(1px);
-            box-shadow: 0 4px 12px rgba(26, 79, 138, 0.45);
+            transform: scale(0.98);
+            background: var(--btn-hover-gradient);
         }
 
-        /* 頁尾版權 */
         .system-footer {
-            margin-top: 45px;
-            padding-top: 26px;
+            padding-top: 1vh;
             border-top: 1px solid #edeae1;
-            font-size: 14px;
-            font-weight: 700; 
+            font-size: clamp(11px, 1.5vh, 13px);
+            font-weight: 600; 
             color: #9a9486;
             text-align: center;
-            letter-spacing: 0.8px;
+            flex-shrink: 0;
         }
 
-        @media (min-width: 576px) {
+        /* ==========================================================================
+           【橫幅模式：當手機旋轉為橫向時 (Landscape)】自動切換版面配置
+           ========================================================================== */
+        @media (orientation: landscape) {
             body {
-                padding: 60px 20px;
+                padding: 2vh 3vw;
             }
+
+            /* 卡片展開為適合橫幅的寬度比例，高度微縮防踩底 */
             .system-card {
-                padding: 55px 55px;
+                width: calc(92vh * 16 / 9); 
+                height: 92vh;
+                max-width: 840px;
+                max-height: 520px;
+                padding: 3vh 4vw 2vh 4vw;
+            }
+
+            .system-header {
+                margin-top: 0.2vh;
+                margin-bottom: 1.2vh;
+            }
+
+            .system-header h2 {
+                font-size: clamp(20px, 4vh, 24px);
+            }
+
+            /* 欄位改為雙欄並排，省下大量垂直高度 */
+            .form-content {
+                grid-template-columns: 1fr 1fr;
+                gap: 1.2vh 2vw;
+                margin-bottom: 1.2vh;
+            }
+
+            /* 讓第一個欄位（旅館名稱）橫跨兩欄，保有足夠長度 */
+            .form-group:first-child {
+                grid-column: span 2;
+            }
+
+            /* 橫幅下微調輸入框內襯，確保在大字體下不擠壓 */
+            input[type="text"],
+            input[type="date"],
+            select {
+                padding: clamp(10px, 2vh, 14px) 12px;
+                font-size: clamp(15px, 2.6vh, 18px);
+            }
+
+            label {
+                margin-bottom: 0.3vh;
+                font-size: clamp(13px, 2.2vh, 15px);
+            }
+
+            /* 橫向模式下按鈕與提示橫向並排，更省空間 */
+            .action-area {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 2vw;
+            }
+
+            .hint-text {
+                text-align: left;
+                margin-top: 0;
+                white-space: nowrap;
+            }
+
+            .btn-submit {
+                width: auto;
+                min-width: 180px;
+                padding: clamp(12px, 2.4vh, 16px) 24px;
+                font-size: clamp(15px, 2.8vh, 18px);
+            }
+
+            .system-footer {
+                padding-top: 0.6vh;
+                margin-top: 0.4vh;
+            }
+        }
+
+        /* 🚨 小螢幕手機安全防護：若螢幕極度窄小，自動限制避免變形 */
+        @media (max-width: 350px) and (orientation: portrait) {
+            .system-card {
+                width: 96vw;
+                height: calc(96vw * 16 / 9);
+                padding: 16px 12px;
             }
         }
     </style>
@@ -218,62 +286,67 @@
 <body>
 
 <div class="system-card">
+    <!-- 頂部標題 -->
     <div class="system-header">
         <h2>臺北市旅館訂房填報系統</h2>
     </div>
     
+    <!-- 中部表單區 -->
     <!-- ⚠️ 請將 ACTION_URL 替換為您的 Google Form formResponse 網址 -->
     <form id="occupancyForm" action="https://docs.google.com/forms/d/e/1FAIpQLScFsx6dMiEBPTR36H5mxF_M2YqirMzbDbtGKs6zXOA6WUwmZw/formResponse" method="POST" target="hidden_iframe">
         
-        <!-- 第一列：旅館名稱 -->
-        <div class="form-group">
-            <label for="hotelName">旅館名稱</label>
-            <!-- ⚠️ 請將 entry.111111 替換為對應的 Google Form Entry ID -->
-            <input type="text" id="hotelName" name="entry.1785275569" required placeholder="請輸入旅館完整名稱">
-        </div>
+        <div class="form-content">
+            <!-- 欄位一：旅館名稱 -->
+            <div class="form-group">
+                <label for="hotelName">旅館名稱</label>
+                <!-- ⚠️ 請將 entry.111111 替換為對應的 Google Form Entry ID -->
+                <input type="text" id="hotelName" name="entry.1785275569" required placeholder="請輸入完整旅館名稱">
+            </div>
 
-        <!-- 第二列：行政區 -->
-        <div class="form-group">
-            <label for="district">行政區</label>
-            <!-- ⚠️ 請將 entry.222222 替換為對應的 Google Form Entry ID -->
-            <select id="district" name="entry.1640318744" required>
-                <option value="" disabled selected>請選擇行政區</option>
-                <option value="中正區">中正區</option>
-                <option value="萬華區">萬華區</option>
-                <option value="大同區">大同區</option>
-                <option value="中山區">中山區</option>
-                <option value="大安區">大安區</option>
-                <option value="信義區">信義區</option>
-                <option value="松山區">松山區</option>
-                <option value="內湖區">內湖區</option>
-                <option value="南港區">南港區</option>
-                <option value="士林區">士林區</option>
-                <option value="北投區">北投區</option>
-                <option value="文山區">文山區</option>
-            </select>
-        </div>
+            <!-- 欄位二：行政區 -->
+            <div class="form-group">
+                <label for="district">行政區</label>
+                <!-- ⚠️ 請將 entry.222222 替換為對應的 Google Form Entry ID -->
+                <select id="district" name="entry.1640318744" required>
+                    <option value="" disabled selected>請選擇行政區</option>
+                    <option value="中正區">中正區</option>
+                    <option value="萬華區">萬華區</option>
+                    <option value="大同區">大同區</option>
+                    <option value="中山區">中山區</option>
+                    <option value="大安區">大安區</option>
+                    <option value="信義區">信義區</option>
+                    <option value="松山區">松山區</option>
+                    <option value="內湖區">內湖區</option>
+                    <option value="南港區">南港區</option>
+                    <option value="士林區">士林區</option>
+                    <option value="北投區">北投區</option>
+                    <option value="文山區">文山區</option>
+                </select>
+            </div>
 
-        <!-- 第三列：訂房率日期 -->
-        <div class="form-group">
-            <label for="reportDate">訂房率日期</label>
-            <!-- ⚠️ 請將 entry.333333 替換為對應的 Google Form Entry ID -->
-            <input type="date" id="reportDate" name="entry.202114952" required>
-        </div>
+            <!-- 欄位三：訂房率日期 -->
+            <div class="form-group">
+                <label for="reportDate">訂房率日期</label>
+                <!-- ⚠️ 請將 entry.333333 替換為對應的 Google Form Entry ID -->
+                <input type="date" id="reportDate" name="entry.202114952" required>
+            </div>
 
-        <!-- 第四列：訂房率 -->
-        <div class="form-group">
-            <label for="occupancyRate">訂房率 (%)</label>
-            <div class="input-wrapper">
+            <!-- 欄位四：訂房率 -->
+            <div class="form-group">
+                <label for="occupancyRate">訂房率 (%)</label>
                 <!-- ⚠️ 請將 entry.444444 替換為對應的 Google Form Entry ID -->
-                <input type="text" id="occupancyRate" name="entry.2026568636" inputmode="decimal" required placeholder="例如：85.80" oninput="validateRate(this)" onblur="formatOnBlur(this)">
+                <input type="text" id="occupancyRate" name="entry.2026568636" inputmode="decimal" required placeholder="例如：85.50" oninput="validateRate(this)" onblur="formatOnBlur(this)">
             </div>
         </div>
 
-        <div class="hint-text">建議使用 Chrome 瀏覽器開啟填報</div>
-
-        <button type="submit" class="btn-submit">確認送出填報</button>
+        <!-- 底部按鈕操作區 -->
+        <div class="action-area">
+            <div class="hint-text">💡 建議使用 Chrome 瀏覽器填報</div>
+            <button type="submit" class="btn-submit">確認送出填報</button>
+        </div>
     </form>
 
+    <!-- 頁尾 -->
     <div class="system-footer">
         © 臺北市政府觀光傳播局 版權所有
     </div>
@@ -328,26 +401,24 @@
         
         var num = parseFloat(val);
         
-        // 數值合法性終端檢查
         if (isNaN(num) || num < 0 || num > 100) {
             alert('請填寫正確的訂房率區間值（0 至 100 之間的數值）');
             e.preventDefault();
             return false;
         }
         
-        // 強制鎖定最終數值帶有兩位小數
         var finalRate = num.toFixed(2);
         rateInput.value = finalRate;
         
         var confirmMessage = 
-            '【 請再次確認填報資料是否正確 】\n' +
-            '----------------------------------------\n\n' +
-            ' 旅館名稱：' + hotelName + '\n\n' +
-            ' 行政區：' + district + '\n\n' +
-            ' 訂房率日期：' + reportDate + '\n\n' +
-            ' 訂房率 (%)：' + finalRate + ' %\n\n' +
+            '【 請再次確認填報資料 】\n' +
             '----------------------------------------\n' +
-            '確認資料無誤並送出請點擊「確定」，欲修改請點擊「取消」。';
+            '旅館名稱：' + hotelName + '\n' +
+            '行政區：' + district + '\n' +
+            '訂房率日期：' + reportDate + '\n' +
+            '訂房率 (%)：' + finalRate + ' %\n' +
+            '----------------------------------------\n' +
+            '確認送出請點擊「確定」。';
             
         if (!confirm(confirmMessage)) {
             e.preventDefault();
@@ -355,7 +426,9 @@
         }
         
         setTimeout(function() {
-            alert('【填報成功】資料已安全傳送至後端管理系統。');
+            alert('【填報成功】資料已安全傳送！');
+            document.getElementById('occupancyForm').reset();
+            document.getElementById('reportDate').valueAsDate = new Date();
         }, 500);
     });
 </script>
